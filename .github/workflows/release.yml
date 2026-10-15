@@ -1,0 +1,36 @@
+# Tag a version (`git tag v1.0 && git push --tags`): the stage folder is
+# zipped and attached to the GitHub release. The rugen catalogue reads the
+# first .zip asset of the latest release; downloads point at it.
+name: release
+on:
+  push:
+    tags: ["v*", "[0-9]*"]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Zip the stage folder
+        id: zip
+        run: |
+          DEF=$(git ls-files '*.def' | grep -v -E '^(intro|ending)\.def$|/(intro|ending)\.def$' | grep -v '^screenshots/' | head -n1)
+          test -n "$DEF" || { echo "no .def file in the repository"; exit 1; }
+          DIR=$(dirname "$DEF")
+          NAME="${GITHUB_REPOSITORY##*/}"
+          ZIP="$RUNNER_TEMP/${NAME}-${GITHUB_REF_NAME}.zip"
+          if [ "$DIR" = "." ]; then
+            # the character lives at the repo root: zip it as <name>/
+            mkdir -p "$RUNNER_TEMP/pack/$NAME"
+            git ls-files | grep -v -E '^(\.github/|screenshots/|README|LICENSE|rugen\.json)' | xargs -I{} cp --parents {} "$RUNNER_TEMP/pack/$NAME/"
+            (cd "$RUNNER_TEMP/pack" && zip -r -9 "$ZIP" "$NAME")
+          else
+            zip -r -9 "$ZIP" "$DIR" -x '*/.git*'
+          fi
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          ls -la "$ZIP"
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" "${{ steps.zip.outputs.zip }}" --title "$GITHUB_REF_NAME" --generate-notes

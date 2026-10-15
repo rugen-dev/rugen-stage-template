@@ -1,0 +1,32 @@
+# Converts the stage with the Linux release of the engine on every push and
+# pull request (`rugen convert --stage`): fails when the .def or its sprites
+# cannot be read. Remove `continue-on-error` once MyStage.sff is in.
+name: verify
+on: [push, pull_request, workflow_dispatch]
+env:
+  RUGEN_VERSION: "0.7.0"
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install rugen
+        run: |
+          curl -sL "https://github.com/rugen-dev/rugen-engine/releases/download/v${RUGEN_VERSION}/rugen-${RUGEN_VERSION}-linux-x86_64.tar.gz" | tar -xz
+          mv "rugen-${RUGEN_VERSION}-linux-x86_64" "$RUNNER_TEMP/rugen"
+          mkdir -p "$RUNNER_TEMP/rugen/stages" "$RUNNER_TEMP/rugen/chars"
+      - name: Find the stage folder
+        id: find
+        run: |
+          DEF=$(git ls-files '*.def' | grep -v '^screenshots/' | head -n1)
+          test -n "$DEF" || { echo "no .def file in the repository"; exit 1; }
+          echo "dir=$(dirname "$DEF")" >> "$GITHUB_OUTPUT"
+          echo "stage folder: $(dirname "$DEF") ($DEF)"
+      - name: rugen convert --stage
+        # The template ships no sprites, so the conversion fails. Remove the
+        # next line once MyStage.sff is in the repository.
+        continue-on-error: true
+        run: |
+          NAME=$(basename "$(cd "${{ steps.find.outputs.dir }}" && pwd)")
+          cp -r "${{ steps.find.outputs.dir }}" "$RUNNER_TEMP/rugen/stages/$NAME"
+          "$RUNNER_TEMP/rugen/rugen" convert "$RUNNER_TEMP/rugen/stages/$NAME" "$RUNNER_TEMP/$NAME.rgs" --stage --root "$RUNNER_TEMP/rugen"

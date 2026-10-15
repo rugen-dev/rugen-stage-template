@@ -1,0 +1,69 @@
+; Minimal stage definition. Rename MyStage.* consistently.
+[Info]
+name = "My Stage"
+displayname = "My Stage"
+versiondate = 01,01,2026
+mugenversion = 1.1
+author = "you"
+
+[Camera]
+startx = 0
+starty = 0
+boundleft = -150
+boundright = 150
+boundhigh = -22
+boundlow = 0
+verticalfollow = .2
+floortension = 0
+tension = 60
+zoomout = 1
+zoomin = 1
+
+[PlayerInfo]
+p1startx = -70
+p1starty = 0
+p1facing = 1
+p2startx = 70
+p2starty = 0
+p2facing = -1
+leftbound = -1000
+rightbound = 1000
+
+[Bound]
+screenleft = 15
+screenright = 15
+
+[StageInfo]
+zoffset = 200
+autoturn = 1
+resetBG = 1
+localcoord = 320, 240
+xscale = 1
+yscale = 1
+
+[Shadow]
+intensity = 96
+color = 0,0,0
+yscale = .4
+fade.range = 0,0
+
+[Music]
+bgmusic =
+bgvolume = 0
+
+[BGDef]
+spr = MyStage.sff        ; the sprite file (binary, from Fighter Factory)
+debugbg = 0
+
+; One background layer: sprite 0,0 of the sff, centred on the floor line.
+[BG floor]
+type = normal
+spriteno = 0, 0
+start = 0, 0
+delta = 1, 1
+mask = 0
+
+; Optional rugen extensions (the catalogue flags the stage "arena"):
+; [Platform]  raised surfaces players stand on
+; [Arena]     Smash-style stocks and blast zones
+; See https://rugen.dev/docs/creating/first-stage/

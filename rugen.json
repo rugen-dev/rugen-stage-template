@@ -1,0 +1,7 @@
+{
+  "kind": "stage",
+  "name": "My Stage",
+  "author": "you",
+  "summary": "One sentence about the stage, shown on the catalogue card.",
+  "screenshots": ["screenshots/wide.png"]
+}
